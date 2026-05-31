@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validación de Expertos (Ronda 2) - Modelo Predictivo TB Chile 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&family=Merriweather:ital,wght=0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #0284c7;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Merriweather', serif;
+        }
+        .hero-pattern {
+            background-color: #0f172a;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .paper-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        .paper-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .delphi-feedback {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-left: 4px solid #0284c7;
+        }
+        .scale-btn:checked + label {
+            background-color: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+        .scale-label:hover {
+            border-color: #0f172a;
+            color: #0f172a;
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* Boxplot layout */
+        .boxplot-whisker-line {
+            position: absolute;
+            height: 2px;
+            background-color: #64748b;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .boxplot-whisker-cap {
+            position: absolute;
+            width: 2px;
+            height: 12px;
+            background-color: #64748b;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<script>
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx2sRBTFOeyOx8zIDQ2su-_ZCYPYtjg3JoFGQ1Zv24GDp3zKm0c0e0QPspHd7IKfOojRg/exec";
+    </script>
+<body class="antialiased">
+
+<div id="modal-contexto" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    <div class="bg-white max-w-2xl w-full max-h-[85vh] rounded-2xl shadow-2xl flex flex-col border border-slate-200">
+        <div class="p-6 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
+            <h2 class="text-xl font-bold text-slate-900 font-serif">Ronda 2: Retroalimentación y Consenso Delphi</h2>
+        </div>
+        <div id="scroll-content" class="p-8 overflow-y-auto text-slate-700 leading-relaxed font-sans text-sm">
+            <h3 class="font-bold text-slate-800 mb-2 underline">Contexto General de la Segunda Ronda</h3>
+            <p class="mb-4">
+                Usted está participando en la <strong>Ronda 2</strong> del proyecto de título 
+                <strong>“Análisis de vulnerabilidad territorial de contraer tuberculosis en población adulta mayor en la Región Metropolitana mediante enfoque multicriterio y de clusterización”</strong>.
+            </p>
+            <div class="bg-green-50 p-4 rounded-xl mb-4 border-l-4 border-green-700">
+                <h4 class="font-bold text-green-800 mb-1">Visualización en Diagrama de Caja (Boxplot)</h4>
+                <p>
+                    Para cada determinante, se despliega un gráfico **Boxplot** que resume estadísticamente las respuestas de la Ronda 1. La caja azul representa el rango intercuartil, la línea roja (<span class="text-red-600 font-bold">|</span>) indica el promedio del grupo, y las líneas extendidas (bigotes) muestran los valores mínimos y máximos.
+                </p>
+            </div>
+        </div>
+        <div class="p-6 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+            <button id="btn-entendido" class="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700 px-8 py-3 rounded-xl font-bold transition-all cursor-pointer">
+                He leído y deseo comenzar la Ronda 2
+            </button>
+        </div>
+    </div>
+</div>
+    
+    <div class="fixed top-0 left-0 w-full h-1.5 z-50 bg-slate-200">
+        <div class="h-full bg-sky-600 progress-bar" style="width: 0%" id="progressBar"></div>
+    </div>
+
+    <header class="hero-pattern text-white pt-16 pb-24 shadow-xl relative overflow-hidden">
+        <div class="max-w-5xl mx-auto px-6 relative z-10">
+            <h1 class="text-3xl md:text-5xl font-bold mb-4 leading-tight">Determinantes de Riesgo <br> <span class="text-sky-400">Modelo Predictivo Tuberculosis 2026</span></h1>
+            <p class="text-slate-300 text-lg max-w-2xl font-light font-sans">Fase de retroalimentación Delphi. Contraste su opinión con el Boxplot estadístico del grupo.</p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-6 -mt-16 pb-20 relative z-20">
+        
+        <form id="expertForm">
+            
+
+            <div class="bg-white rounded-lg paper-card mb-8 border-t-4 border-sky-600">
+                <div class="p-8">
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">01. Caracterización del Experto</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Nombre</label>
+                            <input type="text" name="nombre" id="nombre" placeholder="Escriba su nombre" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded focus:outline-none focus:border-sky-500" required oninput="calcularProgresoBarra()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Correo</label>
+                            <input type="text" name="email" id="email" placeholder="Escriba su correo" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded focus:outline-none focus:border-sky-500" required oninput="calcularProgresoBarra()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Profesión</label>
+                            <select name="profesion" id="profesion" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded focus:outline-none focus:border-sky-500" required onchange="toggleCodigoMedico(); calcularProgresoBarra()">
+                                <option value="" disabled selected>Seleccionar...</option>
+                                <option value="Medico">Médico/a</option>
+                                <option value="Enfermeria">Enfermero/a</option>
+                                <option value="Kinesiologia">Kinesiólogo/a</option>
+                                <option value="SaludPublica">Salud Pública / Gestión</option>
+                                <option value="Investigador">Investigador/a</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Rol Principal Actual</label>
+                            <select name="rol" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded focus:outline-none focus:border-sky-500" required onchange="calcularProgresoBarra()">
+                                <option value="" disabled selected>Seleccionar...</option>
+                                <option value="Clinico">Clínico Asistencial</option>
+                                <option value="EncargadoTB">Encargado/a Programa TB</option>
+                                <option value="Director">Director/a / Jefatura</option>
+                                <option value="Investigador">Investigador/a</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="codigoMedicoContainer" class="hidden mb-6">
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Código Profesional MINSAL</label>
+                        <input type="text" name="codigo_medico" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded focus:outline-none focus:border-sky-500" placeholder="Ej: 123456">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">¿Participa actualmente en el PROCET o unidades relacionadas con TB?</label>
+                        <select name="participa_tb" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded focus:outline-none focus:bg-white focus:border-sky-500" required onchange="calcularProgresoBarra()">
+                            <option value="" disabled selected>Seleccionar...</option>
+                            <option value="si">Sí</option>
+                            <option value="no">No</option>
+                            <option value="informal">No formalmente, pero manejo casos de TB.</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="contenedor-preguntas-delphi"></div>
+
+            <div class="text-center mt-12">
+                <button type="button" onclick="enviarCuestionario()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-4 px-12 rounded-full shadow-lg transform transition hover:-translate-y-1 text-lg flex items-center gap-3 mx-auto">
+                    <span>Enviar Validación Ronda 2</span>
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </form>
+    </main>
+    
+    
+
+    <script>
+        const preguntasDelphi = [
+            { id: 'p_calle', num: 1, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '1. Situación de calle:', desc: 'Población en extrema vulnerabilidad con altas tasas de abandono de esquemas terapéuticos.', promedio: 8.60, min: 8.0, q1: 8.0, q3: 9.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_educacion', num: 2, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '2. Bajo nivel educativo:', desc: 'Barrera para comprender síntomas primarios, tratamiento regular y superación de estigmas.', promedio: 8.60, min: 5.0, q1: 6.5, q3: 9.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_vih', num: 3, dimension: 'Dimensión III: Factores Biológicos y Comorbilidades', titulo: '3. Coinfección VIH:', desc: 'Inmunosupresión celular severa; principal gatillante biológico de tuberculosis activa.', promedio: 8.50, min: 7.0, q1: 8.0, q3: 9.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_pobreza', num: 4, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '4. Pobreza / Bajos Ingresos:', desc: 'Determinante socioeconómico estructural central en la formación de clusters territoriales.', promedio: 8.20, min: 5.0, q1: 6.0, q3: 9.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_migracion', num: 5, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '5. Migración internacional / nacionalidad extranjera:', desc: 'Asociada epidemiológicamente a condiciones de habitabilidad y barreras de acceso inicial.', promedio: 7.90, min: 4.0, q1: 7.0, q3: 9.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_carceles', num: 6, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '6. Población Penal (Cárceles):', desc: 'Hacinamiento institucionalizado que potencia la transmisión aérea continua del bacilo.', promedio: 7.70, min: 3.0, q1: 7.5, q3: 9.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_etnia', num: 7, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '7. Pertenencia a Etnias Indígenas:', desc: 'Evaluación de brechas históricas de equidad y vulnerabilidad territorial específica.', promedio: 7.60, min: 2.0, q1: 5.5, q3: 9.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_hacinamiento', num: 8, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '8. Hacinamiento intradomiciliario:', desc: 'Contacto estrecho prolongado en espacios mal ventilados.', promedio: 7.40, min: 4.0, q1: 6.0, q3: 9.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_vivienda', num: 9, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '9. Calidad de la vivienda (Materialidad):', desc: 'Infraestructura deficiente que perpetúa la humedad y falta de luz solar directa.', promedio: 7.20, min: 5.0, q1: 5.5, q3: 8.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_drogas', num: 10, dimension: 'Dimensión II: Factores de Estilo de Vida y Consumo', titulo: '10. Consumo de Drogas ilícitas:', desc: 'Impacto directo en la adherencia al tratamiento DOTS y deterioro orgánico general.', promedio: 7.10, min: 3.0, q1: 5.5, q3: 8.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_tabaquismo', num: 11, dimension: 'Dimensión II: Factores de Estilo de Vida y Consumo', titulo: '11. Fumador Recurrente (Tabaquismo):', desc: 'Deterioro de la respuesta ciliar pulmonar facilitando la colonización bacteriana.', promedio: 7.10, min: 5.0, q1: 6.0, q3: 8.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_nutricion', num: 12, dimension: 'Dimensión III: Factores Biológicos y Comorbilidades', titulo: '12. Estado Nutricional (Bajo Peso):', desc: 'Déficit calórico inmunológico crónico que acelera el desarrollo de la enfermedad pulmonar.', promedio: 6.80, min: 4.0, q1: 5.5, q3: 8.5, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_diabetes', num: 13, dimension: 'Dimensión III: Factores Biológicos y Comorbilidades', titulo: '13. Diabetes Mellitus:', desc: 'Alteración metabólica sistémica que entorpece el aclaramiento bacteriano pulmonar.', promedio: 6.60, min: 2.0, q1: 5.2, q3: 8.2, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' },
+            { id: 'p_region', num: 14, dimension: 'Dimensión I: Factores sociales y de vulnerabilidad', titulo: '14. Región/Territorio de Residencia:', desc: 'Variabilidad del comportamiento de las tasas según la localización urbana periférica.', promedio: 6.30, min: 2.0, q1: 4.2, q3: 8.0, max: 9.0, lblMin: 'Bajo', lblMax: 'Crítico' }
+        ];
+
+        const contenedor = document.getElementById('contenedor-preguntas-delphi');
+        let ultimaDimension = '';
+
+        contenedor.innerHTML = preguntasDelphi.map(p => {
+            let htmlSeccion = '';
+            if (p.dimension !== ultimaDimension) {
+                ultimaDimension = p.dimension;
+                htmlSeccion = `
+                    <div class="bg-slate-800 text-white font-serif font-bold text-md px-8 py-4 rounded-t-lg mt-10 shadow-sm flex justify-between items-center">
+                        <span>${p.dimension}</span>
+                        <i class="fa-solid fa-layer-group text-slate-400"></i>
+                    </div>
+                `;
+            }
+
+            const getPct = (val) => ((val - 1) / 8) * 100;
+            const pctMin = getPct(p.min);
+            const pctQ1 = getPct(p.q1);
+            const pctPromedio = getPct(p.promedio);
+            const pctQ3 = getPct(p.q3);
+            const pctMax = getPct(p.max);
+
+            return `
+                ${htmlSeccion}
+                <div class="bg-white rounded-b-lg border-x border-b border-slate-200 paper-card p-8 mb-6 overflow-hidden">
+                    <label class="block text-lg font-bold text-slate-800 mb-1">${p.titulo}</label>
+                    <p class="text-sm text-slate-500 mb-4">${p.desc}</p>
+                    
+                    <div class="delphi-feedback p-5 rounded-xl mb-6 font-sans shadow-inner">
+                        <div class="flex justify-between items-center mb-2 text-xs">
+                            <span class="text-slate-700 font-semibold">
+                                <i class="fa-solid fa-chart-bar mr-1 text-sky-600"></i> Boxplot Estadístico (Ronda 1):
+                            </span>
+                            <div class="flex gap-2 text-[11px]">
+                                <span class="text-slate-500">Min: <strong>${p.min}</strong></span>
+                                <span class="text-sky-700">Q1: <strong>${p.q1}</strong></span>
+                                <span class="bg-red-100 text-red-700 px-1.5 py-0.2 rounded font-bold">Promedio: ${p.promedio.toFixed(2)}</span>
+                                <span class="text-sky-700">Q3: <strong>${p.q3}</strong></span>
+                                <span class="text-slate-500">Max: <strong>${p.max}</strong></span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full h-14 relative bg-slate-50 border border-slate-200/60 rounded-lg my-2 px-2">
+                            <div class="boxplot-whisker-line" style="left: ${pctMin}%; width: ${pctQ1 - pctMin}%;"></div>
+                            <div class="boxplot-whisker-cap" style="left: ${pctMin}%;"></div>
+
+                            <div class="absolute h-8 bg-sky-200/80 border-2 border-sky-600 top-1/2 -translate-y-1/2 rounded shadow-sm" 
+                                 style="left: ${pctQ1}%; width: ${pctQ3 - pctQ1}%;"></div>
+
+                            <div class="absolute h-10 w-1 bg-red-600 top-1/2 -translate-y-1/2 z-10 shadow" 
+                                 style="left: ${pctPromedio}%;"></div>
+
+                            <div class="boxplot-whisker-line" style="left: ${pctQ3}%; width: ${pctMax - pctQ3}%;"></div>
+                            <div class="boxplot-whisker-cap" style="left: ${pctMax}%;"></div>
+                        </div>
+                        
+                        <div class="flex justify-between text-[10px] text-slate-400 font-mono px-1">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center gap-2 mt-4">
+                        <span class="text-xs font-bold text-slate-400 w-16 text-right">${p.lblMin}</span>
+                        <div class="flex-1 flex justify-between gap-1 max-w-2xl mx-auto">
+                            ${[1,2,3,4,5,6,7,8,9].map(valor => `
+                                <div class="w-full">
+                                    <input type="radio" name="${p.id}" id="rd_${p.id}_${valor}" value="${valor}" class="hidden scale-btn" required onchange="calcularProgresoBarra()">
+                                    <label for="rd_${p.id}_${valor}" class="scale-label block w-full text-center border border-slate-200 rounded-lg py-2.5 cursor-pointer text-sm font-medium transition hover:bg-slate-50">${valor}</label>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <span class="text-xs font-bold text-sky-700 w-16">${p.lblMax}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        function updateProgress(val) {
+            document.getElementById('progressBar').style.width = val + '%';
+        }
+
+        function calcularProgresoBarra() {
+            const marcados = document.querySelectorAll('input[type="radio"]:checked').length;
+            const porcentajeProgress = Math.min(15 + Math.round((marcados / preguntasDelphi.length) * 85), 100);
+            updateProgress(porcentajeProgress);
+        }
+
+        function toggleCodigoMedico() {
+            const prof = document.getElementById("profesion").value;
+            const box = document.getElementById("codigoMedicoContainer");
+            if(prof === "Medico") box.classList.remove("hidden");
+            else box.classList.add("hidden");
+        }
+    </script>
+
+<script>
+        // Lógica del modal
+        document.addEventListener("DOMContentLoaded", function() {
+            const btnEntendido = document.getElementById('btn-entendido');
+            const modal = document.getElementById('modal-contexto');
+
+            btnEntendido.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        });
+
+        function enviarCuestionario() {
+            const form = document.getElementById('expertForm');
+            const btnSubmit = document.querySelector('button[onclick="enviarCuestionario()"]');
+
+            // 1. Forzar la validación de los campos 'required' de HTML5
+            if (!form.reportValidity()) {
+                return; // Si falta un campo, se detiene la ejecución
+            }
+
+            // 2. Extraer todos los datos del formulario automáticamente
+            const formData = new FormData(form);
+            const datos = Object.fromEntries(formData.entries());
+
+            // 3. Cambiar el estado del botón para mostrar que está cargando
+            const btnOriginalText = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = '<span>Enviando...</span> <i class="fa-solid fa-spinner fa-spin"></i>';
+            btnSubmit.disabled = true;
+            btnSubmit.classList.add('opacity-75', 'cursor-not-allowed');
+
+            // 4. Enviar los datos a Google Apps Script
+            fetch(WEBAPP_URL, {
+                method: "POST",
+                // Usamos text/plain para evitar errores de CORS con Google Apps Script. 
+                // Tu GAS lo leerá igual como texto y lo parseará como JSON.
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.status === "success") {
+                    alert("¡Validación enviada con éxito! Muchas gracias por su tiempo.");
+                    form.reset(); // Limpiar el formulario
+                    document.getElementById('progressBar').style.width = '0%'; // Reiniciar barra
+                    window.scrollTo(0, 0); // Subir al inicio
+                } else {
+                    throw new Error(result.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error al enviar:", error);
+                alert("Hubo un problema al enviar los datos. Revisa tu conexión o intenta nuevamente.");
+            })
+            .finally(() => {
+                // 5. Restaurar el botón a su estado original
+                btnSubmit.innerHTML = btnOriginalText;
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-75', 'cursor-not-allowed');
+            });
+        }
+    </script>
+    
+</body>
+</html>
